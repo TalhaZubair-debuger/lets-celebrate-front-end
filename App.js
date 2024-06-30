@@ -13,6 +13,8 @@ import SellerHome from './Screens/Seller/SellerHome.js';
 import AddProduct from './Screens/Seller/AddProduct.js';
 import CurrentBookings from './Screens/Seller/CurrentBookings.js';
 import { useState } from 'react';
+import UserBookings from './Screens/UserBookings/UserBookings.js';
+import EditProduct from './Screens/Seller/EditProduct.js';
 
 
 const SellerStack = createStackNavigator();
@@ -36,6 +38,13 @@ function SellerStackTabs() {
       <SellerStack.Screen
         name="Current Bookings"
         component={CurrentBookings}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <SellerStack.Screen
+        name="Edit Product"
+        component={EditProduct}
         options={{
           headerShown: false,
         }}
@@ -97,6 +106,13 @@ export default function App() {
             name="OrderNow"
             component={OrderNowPage}
             initialParams={{ setStripeKey: setStripeKey }}
+            options={{
+              headerShown: false,
+            }}
+          />
+          <RootStack.Screen
+            name="User Bookings"
+            component={UserBookings}
             options={{
               headerShown: false,
             }}

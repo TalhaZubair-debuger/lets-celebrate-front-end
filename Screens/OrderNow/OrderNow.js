@@ -149,6 +149,7 @@ const OrderNowPage = ({ navigation, route }) => {
                 const data = await response.json();
                 if (data.message) {
                     Alert.alert("Success!", `Your Event Place/Service has been booked for ${product.price * quantity} on ${date}`);
+                    navigation.navigate("Home");
                     return;
                 } else {
                     Alert.alert("Error occured!", "Some unknown error occcured");

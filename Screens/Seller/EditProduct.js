@@ -1,16 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, Button, ScrollView, Pressable, Image, Alert } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import CustomButton from "../../components/CutomButton.js";
+import CustomButton from "../../components/CutomButton";
 import * as ImagePicker from 'expo-image-picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import globalStyles from '../../globalStyles';
-import { HostName } from '../../utils/consts.js';
+import { HostName } from '../../utils/consts';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const categories = ["Event Place", "Catering", "Fireworks", "Flower Decorations", "Photographer"];
 
-const AddProduct = ({ navigation }) => {
+const EditProduct = ({ route, navigation }) => {
+    const { productId } = route.params;
     const [image, setImage] = useState('');
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -22,7 +23,39 @@ const AddProduct = ({ navigation }) => {
     const [publicKey, setPublicKey] = useState('');
     const [paymentKey, setPaymentKey] = useState('');
 
-    const handleAddProduct = async () => {
+    useEffect(() => {
+        const fetchProduct = async () => {
+            try {
+                const jwtToken = await AsyncStorage.getItem("jwtToken");
+                const response = await fetch(`${HostName}product-services/product/${productId}`, {
+                    method: "GET",
+                    headers: {
+                        'Authorization': `${jwtToken}`
+                    }
+                });
+                const product = await response.json();
+                console.log("DING DONG", product);
+                if (product.eventService) {
+                    setImage(product.eventService.image);
+                    setTitle(product.eventService.title);
+                    setDescription(product.eventService.description);
+                    setLocation(product.eventService.location);
+                    setCategory(product.eventService.category);
+                    setTags(product.eventService.tags);
+                    setPrice(product.eventService.price.toString());
+                    setContactNumber(product.eventService.contactNumber);
+                    setPublicKey(product.eventService.paymentPublicKey);
+                    setPaymentKey(product.eventService.paymentPrivateKey);
+                }
+            } catch (error) {
+                Alert.alert("Error!", error.message);
+            }
+        };
+
+        fetchProduct();
+    }, [productId]);
+
+    const handleUpdateProduct = async () => {
         // Perform validation checks
         if (!image || !title || !description || !location || !category || !tags || !price || !contactNumber || !paymentKey || !publicKey) {
             Alert.alert("Alert!", "Please fill all the fields.");
@@ -36,8 +69,8 @@ const AddProduct = ({ navigation }) => {
 
         try {
             const jwtToken = await AsyncStorage.getItem("jwtToken");
-            const res = await fetch(`${HostName}product-services/add-product`, {
-                method: "POST",
+            const res = await fetch(`${HostName}product-services/product/${productId}`, {
+                method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                     'Authorization': `${jwtToken}`
@@ -58,25 +91,14 @@ const AddProduct = ({ navigation }) => {
 
             const data = await res.json();
 
-            if (data.message && !data.productId) {
+            if (data.message && !data.updatedProduct) {
                 Alert.alert("Alert!", data.message);
                 return;
             }
 
-            if (data.productId) {
-                Alert.alert("Success!", "Event Place/Service added successfully.");
-                setImage('');
-                setTitle('');
-                setDescription('');
-                setLocation('');
-                setCategory(categories[0]);
-                setTags('');
-                setPrice('');
-                setContactNumber('');
-                setPaymentKey('');
-                setPublicKey('');
-                // Navigate to SellerHome
-                navigation.navigate('Home');
+            if (data.updatedProduct) {
+                Alert.alert("Success!", "Event Place/Service updated successfully.");
+                navigation.navigate('SellerHome');
                 return;
             }
         } catch (err) {
@@ -84,6 +106,27 @@ const AddProduct = ({ navigation }) => {
         }
     };
 
+    const handleDeleteProduct = async () => {
+        try {
+            const jwtToken = await AsyncStorage.getItem("jwtToken");
+            const res = await fetch(`${HostName}product-services/product/${productId}`, {
+                method: "DELETE",
+                headers: {
+                    'Authorization': `${jwtToken}`
+                }
+            });
+
+            const data = await res.json();
+
+            if (data.message) {
+                Alert.alert("Success!", data.message);
+                navigation.navigate('SellerHome');
+                return;
+            }
+        } catch (err) {
+            Alert.alert("Error!", err.message);
+        }
+    };
 
     const pickImage = async () => {
         let result = await ImagePicker.launchImageLibraryAsync({
@@ -105,7 +148,7 @@ const AddProduct = ({ navigation }) => {
             <View style={styles.container}>
                 <View style={globalStyles.headerPinkSmall}>
                     <View style={globalStyles.headerRowOne}>
-                        <Text style={globalStyles.heading3}>Add Event Place/Service</Text>
+                        <Text style={globalStyles.heading3}>Edit Event Place/Service</Text>
                     </View>
                 </View>
 
@@ -189,19 +232,35 @@ const AddProduct = ({ navigation }) => {
                         width="100%"
                         height={50}
                         borderRadius={10}
-                        onPress={handleAddProduct}
+                        onPress={handleUpdateProduct}
                     >
-                        <Text>Add Event Place/Service</Text>
+                        <Text>Update Event Place/Service</Text>
                     </CustomButton>
+                    <View style={styles.deleteBtn}>
+                        <CustomButton
+                            color="#fff"
+                            backgroundColor="#ff0000"
+                            width="100%"
+                            height={50}
+                            borderRadius={10}
+                            onPress={handleDeleteProduct}
+                            style={{ marginTop: 10 }}
+                        >
+                            <Text>Delete Event Place/Service</Text>
+                        </CustomButton>
+                    </View>
                 </View>
             </View>
         </ScrollView>
     );
 };
 
-export default AddProduct;
+export default EditProduct;
 
 const styles = StyleSheet.create({
+    deleteBtn: {
+        marginTop: 10
+    },
     font15NonBold: {
         fontSize: 15,
     },

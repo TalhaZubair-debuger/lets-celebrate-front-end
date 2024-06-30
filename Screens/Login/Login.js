@@ -1,14 +1,37 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { View, Text, StyleSheet, TextInput, Pressable, Alert } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import CustomButton from "../../components/CutomButton";
 import globalStyles from "../../globalStyles";
 import { HostName } from "../../utils/consts";
+import { BackHandler } from 'react-native';
+import { useFocusEffect } from "@react-navigation/native";
 
 const Login = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [userType, setUserType] = useState("user");
+
+  useFocusEffect(
+    useCallback(() => {
+      checkLogin();
+    }, [])
+)
+  const checkLogin = async () => {
+    const jwtToken = await AsyncStorage.getItem("jwtToken");
+    if (jwtToken) {
+      const bearer = jwtToken.split(" ")[0];
+      if (bearer === "Bearer-Owner") {
+        navigation.navigate("SellerHome")
+      }
+      else if (bearer === "Bearer") {
+        navigation.navigate("Home")
+      }
+      else {
+        BackHandler.exitApp();
+      }
+    }
+  }
 
   const onSubmitHandler = async (event) => {
     if (!email || !password) {
@@ -29,14 +52,15 @@ const Login = ({ navigation }) => {
       if (res.status === 200) {
         const data = await res.json();
         const token = data.token;
-        await AsyncStorage.setItem('jwtToken', `Bearer ${token}`);
         setEmail("");
         setPassword("");
         if (userType === "seller") {
+          await AsyncStorage.setItem('jwtToken', `Bearer-Owner ${token}`);
           navigation.navigate("SellerHome");
           return;
         }
         if (userType === "user") {
+          await AsyncStorage.setItem('jwtToken', `Bearer ${token}`);
           navigation.navigate("Home");
         }
       }

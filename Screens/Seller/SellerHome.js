@@ -157,6 +157,13 @@ const SellerHomePage = ({ navigation }) => {
                                     <Text style={styles.itemDescription}>{item.description}</Text>
                                     <Text style={styles.itemPrice}>Price: {item.price}</Text>
                                 </View>
+
+                                <TouchableOpacity
+                                    style={styles.editButton}
+                                    onPress={() => navigation.navigate('Edit Product', { productId: item._id })}
+                                >
+                                    <Text style={styles.editButtonText}>Edit</Text>
+                                </TouchableOpacity>
                             </View>
                         ))
                         :
@@ -174,6 +181,13 @@ const SellerHomePage = ({ navigation }) => {
                                     <Text style={styles.itemDescription}>{item.description}</Text>
                                     <Text style={styles.itemPrice}>Price: {item.price}</Text>
                                 </View>
+
+                                <TouchableOpacity
+                                    style={styles.editButton}
+                                    onPress={() => navigation.navigate('Edit Product', { productId: item._id })}
+                                >
+                                    <Text style={styles.editButtonText}>Edit</Text>
+                                </TouchableOpacity>
                             </View>
                         ))
                         :
@@ -267,5 +281,19 @@ const styles = StyleSheet.create({
     itemPrice: {
         fontSize: 14,
         color: '#f08080',
+    },
+    editButton: {
+        backgroundColor: '#f08080',
+        paddingVertical: 5,
+        paddingHorizontal: 10,
+        borderRadius: 5,
+        height: 40,
+        justifyContent: "center",
+        alignItems: "center",
+        marginTop: 10
+    },
+    editButtonText: {
+        color: '#fff',
+        fontWeight: 'bold',
     },
 });

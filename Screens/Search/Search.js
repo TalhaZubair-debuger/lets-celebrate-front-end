@@ -8,7 +8,8 @@ import { HostName } from '../../utils/consts';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 
-const SearchPage = ({ navigation, SearchTerm = "Default", Category = "Default" }) => {
+const SearchPage = ({ navigation, route }) => {
+    const { SearchTerm = "Default", Category = "Default" } = route.params || {};
     const [searchTerm, setSearchTerm] = useState('');
     const [location, setLocation] = useState('');
     const [category, setCategory] = useState('');
@@ -25,7 +26,7 @@ const SearchPage = ({ navigation, SearchTerm = "Default", Category = "Default" }
     const handleSearch = async () => {
         // No Props Passed
         console.log(SearchTerm, searchTerm, Category, category, location, price);
-        if (SearchTerm === 'Default' && searchTerm === '' && Category === 'Default' && location === "" && price === "" && category === "" ) {
+        if (SearchTerm === 'Default' && searchTerm === '' && Category === 'Default' && location === "" && price === "" && category === "") {
             try {
                 const jwtToken = await AsyncStorage.getItem("jwtToken");
                 const response = await fetch(`${HostName}product-services/all`, {
@@ -37,7 +38,9 @@ const SearchPage = ({ navigation, SearchTerm = "Default", Category = "Default" }
                 const data = await response.json();
                 if (data.eventServices) {
                     setSearchResults(data.eventServices);
-                    SearchTerm = "";
+                }
+                else if (data.message) {
+                    setSearchResults(data.message);
                 }
             } catch (error) {
                 Alert.alert("Failed to fetch!", `${error.message}`);
@@ -46,7 +49,7 @@ const SearchPage = ({ navigation, SearchTerm = "Default", Category = "Default" }
         } else if (SearchTerm !== 'Default' || searchTerm !== '' || location !== "" || price !== "" || category !== "") {
             try {
                 const jwtToken = await AsyncStorage.getItem("jwtToken");
-                const response = await fetch(`${HostName}product-services/search?q=${searchTerm || SearchTerm }&location=${location}&category=${category}&price=${price}`, {
+                const response = await fetch(`${HostName}product-services/search?q=${searchTerm || SearchTerm}&location=${location}&category=${category}&price=${price}`, {
                     method: "GET",
                     headers: {
                         'Authorization': `${jwtToken}`
@@ -55,17 +58,20 @@ const SearchPage = ({ navigation, SearchTerm = "Default", Category = "Default" }
                 const data = await response.json();
                 if (data.eventServices) {
                     setSearchResults(data.eventServices);
-                    SearchTerm = "";
+                }
+                else if (data.message) {
+                    setSearchResults(data.message);
                 }
             } catch (error) {
                 Alert.alert("Failed to fetch!", `${error.message}`);
                 console.log(error);
             }
         } else if (Category !== "Default") {
+            console.log(Category);
             try {
                 const jwtToken = await AsyncStorage.getItem("jwtToken");
                 const response = await fetch(`${HostName}product-services/search-by-category`, {
-                    method: "GET",
+                    method: "POST",
                     headers: {
                         'Authorization': `${jwtToken}`
                     },
@@ -76,8 +82,9 @@ const SearchPage = ({ navigation, SearchTerm = "Default", Category = "Default" }
                 const data = await response.json();
                 if (data.services) {
                     setSearchResults(data.services);
-                    SearchTerm = "";
-                    Category = "";
+                }
+                else if (data.message) {
+                    setSearchResults(data.message);
                 }
             } catch (error) {
                 Alert.alert("Failed to fetch!", `${error.message}`);
@@ -146,8 +153,8 @@ const SearchPage = ({ navigation, SearchTerm = "Default", Category = "Default" }
                 )}
             </View>
             <View>
-                {
-                    searchResults ?
+            {
+                    Array.isArray(searchResults) && searchResults.length > 0 ? (
                         searchResults.map((item, index) => (
                             <Flatlist
                                 image={item.image}
@@ -159,8 +166,9 @@ const SearchPage = ({ navigation, SearchTerm = "Default", Category = "Default" }
                                 productId={item._id}
                             />
                         ))
-                        :
-                        null
+                    ) : (
+                        <Text style={globalStyles.textCenter}>No search results found.</Text>
+                    )
                 }
             </View>
         </ScrollView>

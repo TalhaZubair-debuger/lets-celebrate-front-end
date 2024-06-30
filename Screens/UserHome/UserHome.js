@@ -53,7 +53,7 @@ const UserHome = ({ navigation }) => {
                 }
             });
             const data = await response.json();
-            if (data.topServices) {
+            if (data.topServices.length) {
                 setTopServices(data.topServices)
             } else {
                 console.log(data);
@@ -88,7 +88,7 @@ const UserHome = ({ navigation }) => {
         {
             id: 1,
             name: "castle",
-            text: "Event Places"
+            text: "Event Place"
         },
         {
             id: 2,
@@ -104,6 +104,11 @@ const UserHome = ({ navigation }) => {
             id: 4,
             name: "spa",
             text: "Flower Decorators"
+        },
+        {
+            id: 5,
+            name: "camera",
+            text: "Photographer"
         }
     ]
 
@@ -158,25 +163,35 @@ const UserHome = ({ navigation }) => {
                         <Text style={[globalStyles.heading3, styles.m10]}>Categories</Text>
                     </View>
 
-                    <View style={styles.grid}>
-                        <FlatList
-                            data={categoriesData}
-                            numColumns={3}
-                            renderItem={({ item }) => (
-                                <TouchableOpacity
-                                    onPress={() => navigation.navigate("Search", { Category: item.text })}
-                                    style={styles.card}>
-                                    <Text>
-                                        <Icon name={`${item.name}`} size={25} color="#f08080" />
-                                    </Text>
-                                    <Text style={globalStyles.textCenter}>
-                                        {item.text}
-                                    </Text>
-                                </TouchableOpacity>
-                            )}
-                            keyExtractor={(item) => item.id}
-                        />
+                    <View style={styles.container}>
+                        {categoriesData.map((item) => (
+                            <TouchableOpacity
+                                key={item.id}
+                                onPress={() => navigation.navigate("Search", { Category: item.text })}
+                                style={styles.card}
+                            >
+                                <Text>
+                                    <Icon name={`${item.name}`} size={25} color="#f08080" />
+                                </Text>
+                                <Text style={globalStyles.textCenter}>
+                                    {item.text}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
                     </View>
+                </View>
+
+                <View style={[globalStyles.canvasFull, {marginHorizontal: 10, width: "95%"}]}>
+                    <CustomButton
+                        color="#fff"// Light pink
+                        backgroundColor="#f08080"
+                        width="100%"
+                        height={50}
+                        borderRadius={10}
+                        onPress={() => { navigation.navigate("User Bookings") }}
+                    >
+                        My Current Bookings
+                    </CustomButton>
                 </View>
 
                 {/* Top Selling Services */}
@@ -186,8 +201,8 @@ const UserHome = ({ navigation }) => {
                     </View>
 
                     {
-                        eventPlaces ?
-                            Array.isArray(eventPlaces) || eventPlaces.length !== 0 ?
+                        eventPlaces || eventPlaces.length  || eventPlaces == undefined ?
+                            Array.isArray(eventPlaces) && eventPlaces.length !== 0 ?
                                 eventPlaces.map((item, index) => (
                                     <Flatlist
                                         image={item.image}
@@ -213,8 +228,8 @@ const UserHome = ({ navigation }) => {
                     </View>
 
                     {
-                        topServices ?
-                            Array.isArray(topServices) || topServices.length !== 0 ?
+                        topServices && topServices.length ?
+                            Array.isArray(topServices) && topServices.length !== 0 ?
                                 topServices.map((item, index) => (
                                     <Flatlist
                                         image={item.image}
@@ -229,7 +244,7 @@ const UserHome = ({ navigation }) => {
                                 :
                                 <Text>{topServices}</Text>
                             :
-                            null
+                            <Text>{topServices}</Text>
                     }
                 </View>
             </View>
@@ -240,6 +255,11 @@ const UserHome = ({ navigation }) => {
 export default UserHome
 
 const styles = StyleSheet.create({
+    container: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-around',
+    },
     headerRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
